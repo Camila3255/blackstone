@@ -24,6 +24,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
         |actions: Recursive<char, Vec<Option<Block>>, Simple<char>>| {
             // All lets have {} around them to allow them to be minified in code editors.
             // This allows for a easier time editing code!
+            #[allow(unused_variables)]
             let operation = {
                 just::<char, &str, Simple<char>>("=")
                     .or(just("+"))
@@ -63,7 +64,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                         }
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in args.into_iter().enumerate() {
-                            let id = data_to_id(&data);
+                            let id = data.repr();
                             items.push(Item {
                                 id,
                                 slot: slot.try_into().expect("failed ot convert to usize"),
@@ -106,7 +107,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                     .map(|(f, datas): (String, Vec<ItemData>)| {
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in datas.into_iter().enumerate() {
-                            let id = data_to_id(&data);
+                            let id = data.repr();
 
                             items.push(Item {
                                 id,
@@ -134,7 +135,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                     .map(|(f, datas): (String, Vec<ItemData>)| {
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in datas.into_iter().enumerate() {
-                            let id = data_to_id(&data);
+                            let id = data.repr();
 
                             items.push(Item {
                                 id,
@@ -162,7 +163,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                     .map(|(identifier, datas)| {
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in datas.into_iter().enumerate() {
-                            let id = data_to_id(&data);
+                            let id = data.repr();
 
                             items.push(Item {
                                 id,
@@ -348,16 +349,6 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
         },
     );
     actions
-}
-
-fn data_to_id(data: &ItemData) -> String {
-    match data {
-        ItemData::Number { .. } => "num".to_string(),
-        ItemData::Text { .. } => "txt".to_string(),
-        ItemData::VanillaItem { .. } => "item".to_string(),
-        ItemData::Location { .. } => "loc".to_string(),
-        _ => "var".to_string(),
-    }
 }
 
 pub fn argument_list() -> impl Parser<char, Vec<ItemData>, Error = Simple<char>> {

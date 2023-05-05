@@ -115,4 +115,19 @@ impl ItemData {
             Self::NoData => r#""NoData""#.to_string(),
         }
     }
+
+    pub fn repr(&self) -> String {
+        match self {
+            ItemData::Number { .. } => "num".to_string(),
+            ItemData::Text { .. } => "txt".to_string(),
+            ItemData::VanillaItem { .. } => "item".to_string(),
+            ItemData::Location { .. } => "loc".to_string(),
+            ItemData::Vector { .. } => "vec".to_string(),
+            ItemData::Sound { .. } => "sound".to_string(),
+            ItemData::Potion { .. } => "pot".to_string(),
+            ItemData::Particle { .. } => "par".to_string(),
+            ItemData::Variable { .. } => "var".to_string(),
+            ItemData::NoData => "nodata".to_string(),
+        }
+    }
 }
