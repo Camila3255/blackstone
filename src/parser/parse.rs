@@ -16,7 +16,7 @@ use crate::codegen::{
 use super::datatypes::arguments_parser;
 
 pub fn parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error = Simple<char>> {
-    actions_parser()
+    events_parser()
 }
 
 pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error = Simple<char>> {
@@ -24,7 +24,6 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
         |actions: Recursive<char, Vec<Option<Block>>, Simple<char>>| {
             // All lets have {} around them to allow them to be minified in code editors.
             // This allows for a easier time editing code!
-            #[allow(unused_variables)]
             let operation = {
                 just::<char, &str, Simple<char>>("=")
                     .or(just("+"))
@@ -64,7 +63,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                         }
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in args.into_iter().enumerate() {
-                            let id = data.repr();
+                            let id = data_to_id(&data);
                             items.push(Item {
                                 id,
                                 slot: slot.try_into().expect("failed ot convert to usize"),
@@ -107,7 +106,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                     .map(|(f, datas): (String, Vec<ItemData>)| {
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in datas.into_iter().enumerate() {
-                            let id = data.repr();
+                            let id = data_to_id(&data);
 
                             items.push(Item {
                                 id,
@@ -135,7 +134,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                     .map(|(f, datas): (String, Vec<ItemData>)| {
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in datas.into_iter().enumerate() {
-                            let id = data.repr();
+                            let id = data_to_id(&data);
 
                             items.push(Item {
                                 id,
@@ -163,7 +162,7 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
                     .map(|(identifier, datas)| {
                         let mut items: Vec<Item> = vec![];
                         for (slot, data) in datas.into_iter().enumerate() {
-                            let id = data.repr();
+                            let id = data_to_id(&data);
 
                             items.push(Item {
                                 id,
@@ -186,9 +185,11 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
             let if_player = {
                 text::keyword("if")
                     .ignore_then(just(' '))
+                    .ignore_then(just('!'))
                     .ignore_then(text::keyword("player"))
                     .ignore_then(just('.'))
                     .ignore_then(ident())
+                    .padded()
                     .then(
                         actions
                             .clone()
@@ -349,6 +350,124 @@ pub fn actions_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error 
         },
     );
     actions
+}
+
+pub fn events_parser() -> impl Parser<char, Vec<Option<Block<'static>>>, Error = Simple<char>> {
+    let player_event = text::keyword("PlayerEvent")
+        .ignore_then(just('('))
+        .padded()
+        .ignore_then(ident())
+        .then_ignore(just(')'))
+        .padded()
+        .then(
+            actions_parser()
+                .separated_by(just(';'))
+                .allow_trailing()
+                .padded()
+                .collect::<Vec<_>>()
+                .padded()
+                .delimited_by(just('{'), just('}'))
+                .padded(),
+        )
+        .padded()
+        .map(|(name, args): (String, Vec<Vec<Option<Block>>>)| {
+            let mut out = vec![];
+            for block in args {
+                for sub_block in block.into_iter().flatten() {
+                    out.append(&mut vec![Some(sub_block)]);
+                }
+            }
+            out.insert(
+                0,
+                Some(Block::EventDefinition {
+                    block: "event",
+                    action: name,
+                }),
+            );
+            out
+        });
+
+    let process = text::keyword("proc")
+        .padded()
+        .ignore_then(ident())
+        .then_ignore(just('('))
+        .padded()
+        .then_ignore(just(')'))
+        .padded()
+        .then(
+            actions_parser()
+                .separated_by(just(';'))
+                .allow_trailing()
+                .padded()
+                .collect::<Vec<_>>()
+                .padded()
+                .delimited_by(just('{'), just('}'))
+                .padded(),
+        )
+        .padded()
+        .map(|(name, args): (String, Vec<Vec<Option<Block>>>)| {
+            let mut out = vec![];
+            for block in args {
+                for sub_block in block.into_iter().flatten() {
+                    out.append(&mut vec![Some(sub_block)]);
+                }
+            }
+            out.insert(
+                0,
+                Some(Block::ProcessDefinition {
+                    block: "process",
+                    data: name,
+                }),
+            );
+            out
+        });
+
+    let function = text::keyword("func")
+        .padded()
+        .ignore_then(ident())
+        .then_ignore(just('('))
+        .padded()
+        .then_ignore(just(')'))
+        .padded()
+        .then(
+            actions_parser()
+                .separated_by(just(';'))
+                .allow_trailing()
+                .padded()
+                .collect::<Vec<_>>()
+                .padded()
+                .delimited_by(just('{'), just('}'))
+                .padded(),
+        )
+        .padded()
+        .map(|(name, args): (String, Vec<Vec<Option<Block>>>)| {
+            let mut out = vec![];
+            for block in args {
+                for sub_block in block.into_iter().flatten() {
+                    out.append(&mut vec![Some(sub_block)]);
+                }
+            }
+            out.insert(
+                0,
+                Some(Block::FunctionDefinition {
+                    block: "func",
+                    data: name,
+                }),
+            );
+            out
+        });
+
+    player_event.or(function).or(process)
+}
+
+fn data_to_id(data: &ItemData) -> String {
+    match data {
+        ItemData::Number { .. } => "num".to_string(),
+        ItemData::Text { .. } => "txt".to_string(),
+        ItemData::VanillaItem { .. } => "item".to_string(),
+        ItemData::Location { .. } => "loc".to_string(),
+        _ => "var".to_string(),
+    }
 }
 
 pub fn argument_list() -> impl Parser<char, Vec<ItemData>, Error = Simple<char>> {
