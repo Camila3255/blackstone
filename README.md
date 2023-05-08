@@ -1,6 +1,8 @@
-# Blackstone
+# Blackstone & Shulker
 
-Blackstone is a programming language designed to help create plots on the MCDiamondFire Minecraft server.
+Blackstone is a programming language designed to help create plots on the MCDiamondFire Minecraft server. Shulker is a build tool that allows you to use the Blackstone programming language.
+
+Shulker also allows you to distribute your code publicly - whether you just want your game to be open-source or you want to make a library others can use.
 
 ## Community Links
 
@@ -12,12 +14,11 @@ For ease of use with Blackstone, we recommend downloading the [Recode Mod](https
 
 ### Building from Source
 
-You can install this using the Cargo toolchain.
+You can install the compiler using the Cargo toolchain.
 
 ```text
-cargo install blackstone-df
+cargo install shulker
 ```
-
 It will automatically handle building from source for you.
 
 ### Releases Page
@@ -29,22 +30,22 @@ You can also install it through our `Releases` page on the sidebar. During offic
 ### Code Blocks
 
 - [x] Player Event
-- [x] Player Action
-- [x] If Player
 - [x] Entity Event
+- [x] Player Action
 - [x] Entity Action
-- [x] If Entity
 - [x] Game Action
+- [x] If Player
+- [x] If Entity
 - [x] If Game
-- [x] Set Variable
-- [x] If Variable
-- [x] Repeat
+- [ ] Set Variable
+- [ ] If Variable
+- [ ] Repeat
 - [x] Function
 - [x] Call Function
 - [x] Process
 - [x] Start Process
-- [x] Else
-- [x] Select Object
+- [ ] Else
+- [ ] Select Object
 - [ ] NOT Functionality
 
 ### Values
@@ -85,6 +86,28 @@ We do think they would be useful, though.
 ### DFS Suggestions
 
 None yet! Let us know if there's some cool ones you'd like to see in our Discord!
+
+# Build Utilities
+Shulker will allow you to define your game & library in the `Shulker.toml` file.
+
+## Shulker.toml
+For example, a `Shulker.toml` for a game would be:
+```yaml
+[game]
+name = "Islands 2"
+id = 51025
+```
+And for a library, an example one would be:
+```yaml
+[library]
+name = "Entity Utilities"
+id = "entity_utilities"
+description = "This is a library used to make manipulating entities just better."
+creator = "Endistic"
+```
+
+## Publishing & Creating Libraries
+`todo!()`
 
 ## Special Thanks
 

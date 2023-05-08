@@ -1,5 +1,4 @@
 use ariadne::*;
-use chumsky::error::SimpleReason;
 use chumsky::Parser;
 use codegen::{block::Block, misc::process_block_vec};
 
@@ -89,12 +88,12 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn compile_with_recode(vector: Vec<Block>, name: String) {
+fn compile_with_recode(vector: Vec<Block>, _name: String) {
     let s = process_block_vec(vector);
     let send =
-        r#"{"type": "template","source": "Blackstone","data":"{'name':'%n%','data':'%s%'}"}"#;
+        r#"{"type": "template","source": "Blackstone","data":"{'name':'my name','data':'%s%'}"}"#;
     let send = send.replace("%s%", &s);
-    let send = send.replace("%n%", &name);
+    // let send = send.replace("%n%", &name);
     let mut stream = TcpStream::connect("localhost:31372").expect("failed to connect");
     stream
         .write_all(send.as_bytes())
@@ -107,10 +106,9 @@ fn compile_to_console(vector: Vec<Block>) {
     println!("Paste the above into DF to get it as a template.");
 }
 
-fn process_inputs(input: &str, path: &str, target: CompileTarget) {
-    match parser::parse::parser().parse(input) {
-        Ok(vector) => {
-            let vector = vector.into_iter().flatten().collect::<Vec<_>>();
+/*
+
+let vector = vector.into_iter().flatten().collect::<Vec<_>>();
 
             let _ = vector.get(0).expect("codeless?");
 
@@ -120,33 +118,32 @@ fn process_inputs(input: &str, path: &str, target: CompileTarget) {
                 CompileTarget::Recode => compile_with_recode(vector, name),
                 CompileTarget::Stdout => compile_to_console(vector),
             }
+ */
+fn process_inputs(input: &str, path: &str, target: CompileTarget) {
+    println!("input: {input}");
+    let result = parser::parse::parser().parse(input);
+
+    match result.clone().into_result() {
+        Ok(vector) => {
+            println!("it's ok");
+            let vector = vector.into_iter().flatten().collect::<Vec<_>>();
+            let _ = vector.get(0).expect("codeless?");
+            let name = path.to_string();
+            println!("\t\x1b[32;1mSending\x1b[0m `{path}` to client.");
+            match target {
+                CompileTarget::Recode => compile_with_recode(vector, name),
+                CompileTarget::Stdout => compile_to_console(vector),
+            }
         }
-        Err(v) => {
-            for err in v {
-                if let SimpleReason::Unexpected = err.reason() {
-                    Report::build(ReportKind::Error, (), err.span().start)
-                        .with_message("Unexpected tokens")
-                        .with_label(Label::new(err.span()).with_message({
-                            let mut out = String::new();
-                            for expected in err.expected() {
-                                out.push_str(format!("'{}' |", expected.unwrap_or('!')).as_str());
-                            }
-                            out.pop();
-                            out.pop();
-                            format!("expected {}, found '{}'", out, err.found().unwrap_or(&'✗'))
-                        }))
-                        .finish()
-                        .print(Source::from(input))
-                        .unwrap();
-                }
-                if let SimpleReason::Custom(msg) = err.reason() {
-                    Report::build(ReportKind::Error, (), err.span().start)
-                        .with_message(msg)
-                        .with_label(Label::new(err.span()).with_message("Error occured here"))
-                        .finish()
-                        .print(Source::from(input))
-                        .unwrap();
-                }
+        Err(errors) => {
+            println!("it's error");
+            for e in errors {
+                Report::build(ReportKind::Error, (), e.span().start)
+                    .with_message(e.reason().to_string())
+                    .with_label(Label::new(e.span().start..e.span().end).with_color(Color::Red))
+                    .finish()
+                    .print(Source::from(input))
+                    .expect("failed to print?");
             }
         }
     }
