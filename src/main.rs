@@ -125,14 +125,16 @@ fn process_inputs(input: &str, path: &str, target: CompileTarget) {
 
     match result.clone().into_result() {
         Ok(vector) => {
-            println!("it's ok");
-            let vector = vector.into_iter().flatten().collect::<Vec<_>>();
-            let _ = vector.get(0).expect("codeless?");
-            let name = path.to_string();
             println!("\t\x1b[32;1mSending\x1b[0m `{path}` to client.");
-            match target {
-                CompileTarget::Recode => compile_with_recode(vector, name),
-                CompileTarget::Stdout => compile_to_console(vector),
+            for subvector in vector {
+                let subvector = subvector.into_iter().flatten().collect::<Vec<_>>();
+                let _ = subvector.get(0).expect("codeless?");
+                let name = path.to_string();
+
+                match target {
+                    CompileTarget::Recode => compile_with_recode(subvector, name),
+                    CompileTarget::Stdout => compile_to_console(subvector),
+                }
             }
         }
         Err(errors) => {
@@ -150,24 +152,31 @@ fn process_inputs(input: &str, path: &str, target: CompileTarget) {
 }
 
 fn help_message(prefix: &str) {
+    let bold = "\x1b[39;1m";
+    let reset = "\x1b[0m";
+    println!("{bold}");
     shulker_header();
+    println!("{reset}");
+    
+
     println!(
         r#"
 Blackstone's compiler & build tooling
 
-Usage: {prefix} [commands]
+{bold}Usage:{reset} {prefix} [commands]
 
-Built-in commands:
-    version                     Get the current version of Blackstone.
-    init                        Initialize a new Blackstone environment in your current directory.
-    build-one [script]          Builds the code provided & sends it via `recode` mod.
-    build                       Builds all code in the `scripts` directory & sends it via `recode` mod.
-    build-stdout [script]       Sends the code data to the console instead of to `recode`.
-                                Useful if you don't have `recode` installed.
-    build-test                  Run the tests in the code.
-    add [package]               Add an external package to your scripts.
-    recode                      Gives a link to the `recode` mod, for ease of use with Blackstone
-    help                        Shows this message!
+{bold}Built-in commands:{reset}
+    {bold}version{reset}                     Get the current version of Blackstone
+    {bold}init{reset}                        Initialize a new Blackstone environment in your current directory
+    {bold}build-one [script]{reset}          Builds the code provided & sends it via `recode` mod
+    {bold}build{reset}                       Builds all code in the `scripts` directory & sends it via `recode` mod
+    {bold}build-stdout [script]{reset}       Sends the code data to the console instead of to `recode`
+                                Useful if you don't have `recode` installed
+    {bold}build-test{reset}                  Run the tests in the code. (Coming soon!)
+    {bold}add [package]{reset}               Add an external package to your scripts
+    {bold}recode{reset}                      Gives a link to the `recode` mod, for ease of use with Blackstone
+    {bold}help{reset}                        Shows this message
+    {bold}docs{reset}                        View documentation (Coming soon!)
     "#
     );
 }
