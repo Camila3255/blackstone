@@ -1,0 +1,3 @@
+on player.join {
+    player.sendMessage("this is my message")
+}
