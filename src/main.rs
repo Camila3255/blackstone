@@ -58,7 +58,7 @@ fn main() -> io::Result<()> {
                 let cargo_toml = include_str!("../Cargo.toml");
                 match cargo_toml.lines().nth(2) {
                     Some(line) => {
-                        let line = line.strip_prefix("version = ").unwrap_or("");
+                        let line = line.strip_prefix("version = ").unwrap_or(line);
                         if line.is_empty() {
                             return Err(std::io::Error::new(
                                 std::io::ErrorKind::Other,
@@ -71,7 +71,7 @@ fn main() -> io::Result<()> {
                     None => {
                         return Err(std::io::Error::new(
                             std::io::ErrorKind::Other,
-                            "Could not find a valid `Cargo.toml` file",
+                            "Could not find a valid `Cargo.toml` file to fetch a version from.",
                         ))
                     }
                 }
@@ -80,7 +80,10 @@ fn main() -> io::Result<()> {
                 println!("Recode on modrinth: https://modrinth.com/mod/recode");
                 println!("Recode on github: https://github.com/homchom/recode");
             }
-            "docs" => todo!(),
+            "docs" => {
+                println!("The documentation is currently in beta!");
+                println!("You may view its repo here: https://github.com/BlackstoneDF/BlackstoneDF.github.io")
+            }
             _ => help_message(prefix), //"help" is included in the catch-all
         }
     } else {

@@ -675,16 +675,11 @@ pub fn argument_list<'a>() -> impl Parser<'a, &'a str, Vec<ItemData>, Err<Rich<'
 
 /// This matches an ItemData to it's ID in the item type.
 fn data_to_id(data: &ItemData) -> String {
-    match data {
-        ItemData::Number { .. } => "num".to_string(),
-        ItemData::Text { .. } => "txt".to_string(),
-        ItemData::VanillaItem { .. } => "item".to_string(),
-        ItemData::Location { .. } => "loc".to_string(),
-        _ => "var".to_string(),
-    }
+    data.repr()
 }
 
-/// Converts the first letter of a String to uppercase.
+/// Converts the first letter of a slice to uppercase. 
+/// Also converts it to a String struct.
 fn first_upper(s: &str) -> String {
     let mut c = s.chars();
     match c.next() {
