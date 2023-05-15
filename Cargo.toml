@@ -1,13 +1,17 @@
 [package]
-name = "shulker"
-version = "0.1.2"
+name = "blackstonedf"
+version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/BlackstoneDF/blackstone"
-homepage = "https://github.com/BlackstoneDF/blackstone"
-description = "A build tool for the Blackstone programming language."
+homepage = "https://blackstonedf.github.io/"
+description = "A compiler for the Blackstone programming language."
+default-run = "bl"
 
+[[bin]]
+path = "./src/main.rs"
+name = "bl"
 
 # Please try to minimize dependencies.
 # I don't want a really long time taken when building.
@@ -22,3 +26,4 @@ serde = { version = "1.0.160", features = ["derive"] }
 serde_json = "1.0.96"
 strum = "0.24.1"
 strum_macros = "0.24.3"
+toml = "0.7.3"

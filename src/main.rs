@@ -9,6 +9,7 @@ mod parser;
 
 fn main() -> io::Result<()> {
     let args = env::args().collect::<Vec<_>>();
+    env::set_var("RUST_BACKTRACE", "1");
 
     let start = std::time::Instant::now();
 
@@ -79,6 +80,7 @@ fn main() -> io::Result<()> {
                 println!("Recode on modrinth: https://modrinth.com/mod/recode");
                 println!("Recode on github: https://github.com/homchom/recode");
             }
+            "docs" => todo!(),
             _ => help_message(prefix), //"help" is included in the catch-all
         }
     } else {
@@ -155,9 +157,8 @@ fn help_message(prefix: &str) {
     let bold = "\x1b[39;1m";
     let reset = "\x1b[0m";
     println!("{bold}");
-    shulker_header();
+    blackstone_header();
     println!("{reset}");
-    
 
     println!(
         r#"
@@ -180,18 +181,6 @@ Blackstone's compiler & build tooling
     "#
     );
 }
-
-fn shulker_header() {
-    println!(
-        r#"
-    .dP"Y8 88  88 88   88 88     88  dP 888888 88""Yb 
-    `Ybo." 88  88 88   88 88     88odP  88__   88__dP 
-    o.`Y8b 888888 Y8   8P 88  .o 88"Yb  88""   88"Yb  
-    8bodP' 88  88 `YbodP' 88ood8 88  Yb 888888 88  Yb 
-    "#
-    );
-}
-
 #[allow(dead_code)]
 fn blackstone_header() {
     println!(
